@@ -1,28 +1,60 @@
 {
+  "entity": {
+    "sensor": {
+      "sms_inbox": {
+        "name": "Inbox"
+      }
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Netgear LTE SMS Manager",
+        "description": "Set up SMS inbox management for your Netgear LTE modem."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SMS Manager Settings",
+        "data": {
+          "poll_interval": "Poll interval",
+          "auto_opt_out": "Auto opt-out",
+          "welcome_message": "Welcome message"
+        },
+        "data_description": {
+          "poll_interval": "How often to check the modem inbox for new messages (seconds).",
+          "auto_opt_out": "Automatically reply STOP to marketing messages that contain opt-out instructions.",
+          "welcome_message": "Message sent to new trusted senders when they are added."
+        }
+      }
+    }
+  },
   "services": {
     "list_inbox": {
-      "description": "[%key:component::netgear_lte_sms_manager::services::list_inbox::description%]",
+      "description": "List all SMS messages in the modem inbox.",
       "fields": {
         "host": {
-          "description": "[%key:component::netgear_lte_sms_manager::services::list_inbox::fields::host::description%]",
-          "name": "[%key:component::netgear_lte_sms_manager::services::list_inbox::fields::host::name%]"
+          "description": "IP address of the modem (auto-detected if only one configured).",
+          "name": "Modem Host"
         }
       },
-      "name": "[%key:component::netgear_lte_sms_manager::services::list_inbox::name%]"
+      "name": "List SMS Inbox"
     },
     "delete_sms": {
-      "description": "[%key:component::netgear_lte_sms_manager::services::delete_sms::description%]",
+      "description": "Delete one or more SMS messages by ID.",
       "fields": {
         "host": {
-          "description": "[%key:component::netgear_lte_sms_manager::services::delete_sms::fields::host::description%]",
-          "name": "[%key:component::netgear_lte_sms_manager::services::delete_sms::fields::host::name%]"
+          "description": "IP address of the modem (auto-detected if only one configured).",
+          "name": "Modem Host"
         },
         "sms_id": {
-          "description": "[%key:component::netgear_lte_sms_manager::services::delete_sms::fields::sms_id::description%]",
-          "name": "[%key:component::netgear_lte_sms_manager::services::delete_sms::fields::sms_id::name%]"
+          "description": "Message ID or list of message IDs to delete.",
+          "name": "SMS ID(s)"
         }
       },
-      "name": "[%key:component::netgear_lte_sms_manager::services::delete_sms::name%]"
+      "name": "Delete SMS"
     },
     "cleanup_inbox": {
       "description": "Clean up the modem SMS inbox using policy options (retain count, age, whitelist).",
@@ -51,14 +83,48 @@
       "name": "Cleanup Inbox"
     },
     "get_inbox_json": {
-      "description": "[%key:component::netgear_lte_sms_manager::services::get_inbox_json::description%]",
+      "description": "Get inbox as JSON data (for template sensors and integrations).",
       "fields": {
         "host": {
-          "description": "[%key:component::netgear_lte_sms_manager::services::get_inbox_json::fields::host::description%]",
-          "name": "[%key:component::netgear_lte_sms_manager::services::get_inbox_json::fields::host::name%]"
+          "description": "IP address of the modem (auto-detected if only one configured).",
+          "name": "Modem Host"
         }
       },
-      "name": "[%key:component::netgear_lte_sms_manager::services::get_inbox_json::name%]"
+      "name": "Get Inbox JSON"
+    },
+    "add_contact": {
+      "description": "Add a trusted sender contact.",
+      "fields": {
+        "name": { "name": "Name", "description": "Display name for this contact." },
+        "number": { "name": "Phone number", "description": "Phone number to add." },
+        "send_welcome": { "name": "Send welcome", "description": "Send the welcome message to this number after adding." },
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      },
+      "name": "Add Contact"
+    },
+    "update_contact": {
+      "description": "Update the name and/or number of an existing trusted sender contact.",
+      "fields": {
+        "contact_id": { "name": "Contact ID", "description": "UUID of the contact to update." },
+        "name": { "name": "Name", "description": "New display name." },
+        "number": { "name": "Phone number", "description": "New phone number." }
+      },
+      "name": "Update Contact"
+    },
+    "remove_contact": {
+      "description": "Remove a trusted sender contact by their UUID.",
+      "fields": {
+        "contact_id": { "name": "Contact ID", "description": "UUID of the contact to remove." }
+      },
+      "name": "Remove Contact"
+    },
+    "send_welcome": {
+      "description": "Send the configured welcome message to a phone number.",
+      "fields": {
+        "number": { "name": "Phone number", "description": "Phone number to send the welcome message to." },
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      },
+      "name": "Send Welcome Message"
     }
   }
 }

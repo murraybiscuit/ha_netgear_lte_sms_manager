@@ -3,29 +3,29 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
+
+_OPT_OUT_RE = re.compile(
+    r"(?:"
+    r"(?:reply|text|send|SMS)\s+STOP\S*"
+    r"|STOP2END"
+    r"|Stop2[Ee]nd"
+    r"|to\s+opt.?out"
+    r"|to\s+unsubscribe"
+    r"|to\s+stop\s+(?:messages|receiving|texts)"
+    r")",
+    re.IGNORECASE,
+)
 
 from .const import DOMAIN, DOMAIN_NETGEAR_CORE, LOGGER
 from .models import NetgearLTECoreMissingError
 
-# Avoid importing constants from homeassistant to keep type stubs happy
 HOST_KEY = "host"
 
 
 def get_netgear_lte_entry(hass, host: str | None = None):
-    """Get a netgear_lte config entry by host or return the first loaded entry.
-
-    Args:
-        hass: Home Assistant instance.
-        host: Optional IP address of the modem. If not provided and only one
-              modem is configured, returns that one.
-
-    Returns:
-        The netgear_lte ConfigEntry.
-
-    Raises:
-        NetgearLTECoreMissingError: If no entries are found or host doesn't match.
-    """
+    """Get a netgear_lte config entry by host or return the first loaded entry."""
     entries = hass.config_entries.async_loaded_entries(DOMAIN_NETGEAR_CORE)
 
     if not entries:
@@ -34,7 +34,6 @@ def get_netgear_lte_entry(hass, host: str | None = None):
         )
 
     if host is None:
-        # Return first entry if only one, otherwise require host parameter
         if len(entries) == 1:
             LOGGER.debug("Using single configured Netgear LTE modem")
             return entries[0]
@@ -55,24 +54,6 @@ def get_netgear_lte_entry(hass, host: str | None = None):
 
 
 def get_all_netgear_modems(hass) -> dict[str, dict]:
-    """Get all configured Netgear LTE modems and their info.
-
-    Useful for discovery and multi-modem setups.
-
-    Args:
-        hass: Home Assistant instance.
-
-    Returns:
-        Dictionary with host as key and modem info dict as value.
-        Structure: {
-            "192.168.5.1": {
-                "title": "Netgear LM1200",
-                "host": "192.168.5.1",
-                "modem": Modem instance,
-                "entry": ConfigEntry instance,
-            }
-        }
-    """
     modems = {}
     for entry in hass.config_entries.async_loaded_entries(DOMAIN_NETGEAR_CORE):
         host = entry.data.get(HOST_KEY)
@@ -83,43 +64,27 @@ def get_all_netgear_modems(hass) -> dict[str, dict]:
                 "modem": entry.runtime_data.modem,
                 "entry": entry,
             }
-
     LOGGER.debug("Found %d Netgear LTE modems", len(modems))
     return modems
 
 
 def get_saved_options(hass) -> dict:
-    """Return stored integration options (first config entry) or empty dict.
-
-    Options are stored as raw multiline strings and parsed by helpers.
-    """
     entries = hass.config_entries.async_entries(DOMAIN)
     if not entries:
         return {}
-    # Use first entry for global options
     return dict(entries[0].options or {})
 
 
 def parse_whitelist_options(options: dict) -> dict:
-    """Parse options into structured whitelist data.
-
-    Returns dict with keys:
-      - 'phone_numbers': set of direct phone number strings
-      - 'contacts': dict mapping contact uuid -> {"name": str, "number": str}
-    """
     phone_numbers = set()
     contacts: dict[str, dict] = {}
 
-    # Direct phone numbers: newline-separated (for power users)
     raw_nums = options.get("whitelist_numbers") or ""
     for line in (l.strip() for l in raw_nums.splitlines() if l.strip()):
         phone_numbers.add(line)
 
-    # Contacts: JSON array of {uuid, name, number}
-    # For backward compat, also parse csv format "name,number" (auto-generate uuid)
     raw_contacts = options.get("contacts") or ""
     if raw_contacts.strip().startswith("["):
-        # JSON format
         try:
             contacts_list = json.loads(raw_contacts)
             for c in contacts_list:
@@ -127,9 +92,8 @@ def parse_whitelist_options(options: dict) -> dict:
                 if c.get("name") and c.get("number"):
                     contacts[cid] = {"name": c["name"], "number": c["number"]}
         except (json.JSONDecodeError, TypeError):
-            pass  # Ignore JSON parsing errors
+            pass
     else:
-        # CSV backward compat: "name,number" lines (auto-generate uuid)
         for line in (l.strip() for l in raw_contacts.splitlines() if l.strip()):
             parts = [p.strip() for p in line.split(",")]
             if len(parts) >= 2:
@@ -139,3 +103,33 @@ def parse_whitelist_options(options: dict) -> dict:
                     contacts[cid] = {"name": name, "number": number}
 
     return {"phone_numbers": phone_numbers, "contacts": contacts}
+
+
+def is_opt_out_message(message: str) -> bool:
+    return bool(_OPT_OUT_RE.search(message))
+
+
+def normalize_number(number: str) -> str:
+    return re.sub(r"\D", "", number)
+
+
+def load_contacts(options: dict) -> list[dict]:
+    raw = options.get("contacts", "")
+    if not raw:
+        return []
+    if raw.strip().startswith("["):
+        try:
+            contacts = json.loads(raw)
+            return [c for c in contacts if c.get("name") and c.get("number")]
+        except (json.JSONDecodeError, TypeError):
+            return []
+    contacts = []
+    for line in (ln.strip() for ln in raw.splitlines() if ln.strip()):
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) >= 2 and parts[0] and parts[1]:
+            contacts.append({"uuid": str(uuid.uuid4()), "name": parts[0], "number": parts[1]})
+    return contacts
+
+
+def save_contacts(contacts: list[dict]) -> str:
+    return json.dumps(contacts)
