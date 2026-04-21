@@ -22,6 +22,7 @@ if (!customElements.get("netgear-sms-panel")) {
       this._refreshing = false;
       this._status = null;
       this._entityMissing = false;
+      this._lastStateKey = undefined;
     }
 
     set panel(panel) {
@@ -38,6 +39,12 @@ if (!customElements.get("netgear-sms-panel")) {
       const entity = this._config.entity;
       if (!entity) return;
       const s = hass.states[entity];
+
+      // Only re-render when our entity actually changes, not on every HA state push
+      const stateKey = s ? `${s.state}|${s.last_updated}` : null;
+      if (stateKey === this._lastStateKey) return;
+      this._lastStateKey = stateKey;
+
       if (!s) {
         this._entityMissing = true;
         this._render();

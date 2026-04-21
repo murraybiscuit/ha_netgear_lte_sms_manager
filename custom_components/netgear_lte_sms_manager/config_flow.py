@@ -64,7 +64,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                     vol.Required(
                         CONF_AUTO_OPT_OUT,
-                        default=self.config_entry.options.get(CONF_AUTO_OPT_OUT, False),
+                        default=self.config_entry.options.get(CONF_AUTO_OPT_OUT, True),
                     ): selector.selector({"boolean": {}}),
                     vol.Optional(
                         CONF_WELCOME_MESSAGE,

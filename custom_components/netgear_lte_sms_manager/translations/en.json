@@ -1,0 +1,103 @@
+{
+  "entity": {
+    "sensor": {
+      "sms_inbox": {
+        "name": "Inbox"
+      }
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Netgear LTE SMS Manager",
+        "description": "Set up SMS inbox management for your Netgear LTE modem."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SMS Manager Settings",
+        "data": {
+          "poll_interval": "Poll interval",
+          "auto_opt_out": "Auto opt-out",
+          "welcome_message": "Welcome message"
+        },
+        "data_description": {
+          "poll_interval": "How often to check the modem inbox for new messages (seconds).",
+          "auto_opt_out": "Look for unsubscribe keywords to opt out and auto delete spam messages.",
+          "welcome_message": "Message sent to new trusted senders when they are added."
+        }
+      }
+    }
+  },
+  "services": {
+    "list_inbox": {
+      "name": "List SMS Inbox",
+      "description": "List all SMS messages in the modem inbox.",
+      "fields": {
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      }
+    },
+    "delete_sms": {
+      "name": "Delete SMS",
+      "description": "Delete one or more SMS messages by ID.",
+      "fields": {
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." },
+        "sms_id": { "name": "SMS ID(s)", "description": "Message ID or list of message IDs to delete." }
+      }
+    },
+    "cleanup_inbox": {
+      "name": "Cleanup Inbox",
+      "description": "Clean up the modem SMS inbox using policy options (retain count, age, whitelist).",
+      "fields": {
+        "host": { "name": "Modem Host", "description": "The modem to clean up (auto-detected if only one configured)." },
+        "retain_count": { "name": "Retain count", "description": "Number of newest messages to keep (default 24)." },
+        "retain_days": { "name": "Retain days", "description": "Keep messages newer than this many days (0 = ignore)." },
+        "whitelist": { "name": "Whitelist", "description": "List of senders (numbers or names) that should never be deleted." },
+        "dry_run": { "name": "Dry run", "description": "If true, only report what would be deleted without deleting." }
+      }
+    },
+    "get_inbox_json": {
+      "name": "Get Inbox JSON",
+      "description": "Get inbox as JSON data (for template sensors and integrations).",
+      "fields": {
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      }
+    },
+    "add_contact": {
+      "name": "Add Contact",
+      "description": "Add a trusted sender contact.",
+      "fields": {
+        "name": { "name": "Name", "description": "Display name for this contact." },
+        "number": { "name": "Phone number", "description": "Phone number to add." },
+        "send_welcome": { "name": "Send welcome", "description": "Send the welcome message to this number after adding." },
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      }
+    },
+    "update_contact": {
+      "name": "Update Contact",
+      "description": "Update the name and/or number of an existing trusted sender contact.",
+      "fields": {
+        "contact_id": { "name": "Contact ID", "description": "UUID of the contact to update." },
+        "name": { "name": "Name", "description": "New display name." },
+        "number": { "name": "Phone number", "description": "New phone number." }
+      }
+    },
+    "remove_contact": {
+      "name": "Remove Contact",
+      "description": "Remove a trusted sender contact by their UUID.",
+      "fields": {
+        "contact_id": { "name": "Contact ID", "description": "UUID of the contact to remove." }
+      }
+    },
+    "send_welcome": {
+      "name": "Send Welcome Message",
+      "description": "Send the configured welcome message to a phone number.",
+      "fields": {
+        "number": { "name": "Phone number", "description": "Phone number to send the welcome message to." },
+        "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
+      }
+    }
+  }
+}
