@@ -10,6 +10,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
+from homeassistant.components import panel_custom
+
 from .const import CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL, DOMAIN, LOGGER
 from .coordinator import SMSCoordinator
 from .services import async_setup_services
@@ -44,7 +46,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     await hass.async_add_executor_job(_deploy_panel_js, hass)
 
-    await hass.components.panel_custom.async_register_panel(
+    await panel_custom.async_register_panel(
         hass,
         webcomponent_name="netgear-sms-panel",
         sidebar_title="SMS Manager",
