@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import shutil
+from pathlib import Path
+
 from homeassistant import config_entries
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -13,9 +16,45 @@ from .services import async_setup_services
 
 PLATFORMS = [Platform.SENSOR]
 
+_PANEL_JS = "netgear-sms-panel.js"
+_PANEL_WWW_DIR = "netgear-sms-manager"
+_PANEL_ENTITY = "sensor.netgear_lte_sms_manager_inbox"
+
+
+def _deploy_panel_js(hass: HomeAssistant) -> None:
+    """Copy panel JS from custom_components/www to /config/www on install/update."""
+    src = Path(__file__).parent / "www" / _PANEL_JS
+    if not src.exists():
+        LOGGER.warning("Panel JS not found at %s — skipping deploy", src)
+        return
+
+    dst_dir = Path(hass.config.path("www", _PANEL_WWW_DIR))
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    dst = dst_dir / _PANEL_JS
+
+    if not dst.exists() or src.read_bytes() != dst.read_bytes():
+        shutil.copy2(src, dst)
+        LOGGER.info("Deployed %s to %s", _PANEL_JS, dst)
+    else:
+        LOGGER.debug("Panel JS already up to date at %s", dst)
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     LOGGER.info("Setting up Netgear LTE SMS Manager")
+
+    await hass.async_add_executor_job(_deploy_panel_js, hass)
+
+    await hass.components.panel_custom.async_register_panel(
+        hass,
+        webcomponent_name="netgear-sms-panel",
+        sidebar_title="SMS Manager",
+        sidebar_icon="mdi:message-text-outline",
+        frontend_url_path="netgear-sms-manager",
+        config={"entity": _PANEL_ENTITY},
+        require_admin=False,
+        js_url=f"/local/{_PANEL_WWW_DIR}/{_PANEL_JS}",
+    )
+
     async_setup_services(hass)
     return True
 
