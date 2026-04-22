@@ -80,7 +80,10 @@ class SMSCoordinator(DataUpdateCoordinator[list[SMSMessage]]):
                 )
                 LOGGER.debug("New SMS from %s (id=%d)", msg.sender, msg.id)
 
-            await self._dispatch_commands(modem, new_messages)
+            try:
+                await self._dispatch_commands(modem, new_messages)
+            except Exception:
+                LOGGER.exception("Unexpected error in _dispatch_commands — continuing poll")
 
             if self._entry.options.get(CONF_AUTO_OPT_OUT, False) and new_messages:
                 opted_out = await self._auto_opt_out(modem, new_messages)
@@ -116,7 +119,7 @@ class SMSCoordinator(DataUpdateCoordinator[list[SMSMessage]]):
 
             success = True
             try:
-                await self.hass.services.async_call(domain, service, service_data, blocking=True)
+                await self.hass.services.async_call(domain, service, service_data, blocking=False)
                 LOGGER.info("Command '%s' executed for %s", command["name"], msg.sender)
                 reply = command.get("reply_ok", "")
             except Exception as ex:
