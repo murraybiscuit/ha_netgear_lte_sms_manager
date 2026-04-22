@@ -57,7 +57,7 @@ CONF_WELCOME_MESSAGE: Final = "welcome_message"
 DEFAULT_RETAIN_COUNT: Final = 24
 DEFAULT_RETAIN_DAYS: Final = 0
 DEFAULT_DRY_RUN: Final = True
-DEFAULT_POLL_INTERVAL: Final = 300
+DEFAULT_POLL_INTERVAL: Final = 30
 DEFAULT_WELCOME_MESSAGE: Final = (
     "Welcome to Home Assistant! Reply to this number to issue a simple command "
     "e.g. 'Lock front door'. Reply 'help' for available commands."
