@@ -133,3 +133,33 @@ def load_contacts(options: dict) -> list[dict]:
 
 def save_contacts(contacts: list[dict]) -> str:
     return json.dumps(contacts)
+
+
+def load_commands(options: dict) -> list[dict]:
+    """Load command definitions from options. Returns only valid (name + service + entity_id) entries."""
+    raw = options.get("commands", "")
+    if not raw:
+        return []
+    try:
+        commands = json.loads(raw)
+        return [
+            c for c in commands
+            if c.get("name") and c.get("service") and c.get("entity_id")
+        ]
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
+def save_commands(commands: list[dict]) -> str:
+    return json.dumps(commands)
+
+
+def keyword_match(text: str, commands: list[dict]) -> dict | None:
+    """Return the first command whose keyword appears in text as whole words (case-insensitive)."""
+    normalized = re.sub(r"[^\w\s]", "", text.lower()).strip()
+    for command in commands:
+        for kw in command.get("keywords", []):
+            pattern = r"\b" + re.escape(kw.lower().strip()) + r"\b"
+            if re.search(pattern, normalized):
+                return command
+    return None

@@ -28,12 +28,18 @@ from .const import (
     DEFAULT_WELCOME_MESSAGE,
     DOMAIN,
     EVENT_CLEANUP_COMPLETE,
+    EVENT_COMMAND_ADDED,
+    EVENT_COMMAND_REMOVED,
+    EVENT_COMMAND_UPDATED,
     EVENT_CONTACT_ADDED,
     EVENT_CONTACT_REMOVED,
     EVENT_CONTACT_UPDATED,
     EVENT_SMS_DELETED,
     EVENT_SMS_INBOX_LISTED,
     EVENT_SMS_SENT,
+    SERVICE_ADD_COMMAND,
+    SERVICE_REMOVE_COMMAND,
+    SERVICE_UPDATE_COMMAND,
     LOGGER,
     SERVICE_ADD_CONTACT,
     SERVICE_CLEANUP_INBOX,
@@ -47,9 +53,11 @@ from .const import (
 from .helpers import (
     get_netgear_lte_entry,
     get_saved_options,
+    load_commands,
     load_contacts,
     normalize_number,
     parse_whitelist_options,
+    save_commands,
     save_contacts,
 )
 from .models import (
@@ -404,6 +412,110 @@ async def _service_send_welcome(call: ServiceCall) -> None:
         raise ServiceValidationError(f"Unexpected error: {type(ex).__name__}", translation_domain=DOMAIN) from ex
 
 
+ADD_COMMAND_SCHEMA = vol.Schema(
+    {
+        vol.Required("name"): cv.string,
+        vol.Required("keywords"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Required("service"): cv.string,
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Optional("service_data", default={}): dict,
+        vol.Optional("reply_ok", default=""): cv.string,
+        vol.Optional("reply_fail", default=""): cv.string,
+    }
+)
+
+UPDATE_COMMAND_SCHEMA = vol.Schema(
+    {
+        vol.Required("command_id"): cv.string,
+        vol.Required("name"): cv.string,
+        vol.Required("keywords"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Required("service"): cv.string,
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Optional("service_data", default={}): dict,
+        vol.Optional("reply_ok", default=""): cv.string,
+        vol.Optional("reply_fail", default=""): cv.string,
+    }
+)
+
+REMOVE_COMMAND_SCHEMA = vol.Schema({vol.Required("command_id"): cv.string})
+
+
+async def _service_add_command(call: ServiceCall) -> None:
+    hass = call.hass
+    entries = hass.config_entries.async_entries(DOMAIN)
+    if not entries:
+        raise ServiceValidationError("Netgear LTE SMS Manager is not configured.")
+    sms_entry = entries[0]
+
+    commands = load_commands(sms_entry.options)
+    new_command = {
+        "uuid": str(uuid.uuid4()),
+        "name": call.data["name"].strip(),
+        "keywords": [kw.strip().lower() for kw in call.data["keywords"] if kw.strip()],
+        "service": call.data["service"],
+        "entity_id": call.data["entity_id"],
+        "service_data": call.data.get("service_data", {}),
+        "reply_ok": call.data.get("reply_ok", ""),
+        "reply_fail": call.data.get("reply_fail", ""),
+    }
+    commands.append(new_command)
+    hass.config_entries.async_update_entry(
+        sms_entry, options={**sms_entry.options, "commands": save_commands(commands)}
+    )
+    hass.bus.async_fire(EVENT_COMMAND_ADDED, {"name": new_command["name"], "uuid": new_command["uuid"]})
+    LOGGER.info("Added command '%s' (%s)", new_command["name"], new_command["uuid"])
+
+
+async def _service_update_command(call: ServiceCall) -> None:
+    hass = call.hass
+    command_id: str = call.data["command_id"]
+    entries = hass.config_entries.async_entries(DOMAIN)
+    if not entries:
+        raise ServiceValidationError("Netgear LTE SMS Manager is not configured.")
+    sms_entry = entries[0]
+
+    commands = load_commands(sms_entry.options)
+    target = next((c for c in commands if c.get("uuid") == command_id), None)
+    if not target:
+        raise ServiceValidationError(f"Command {command_id} not found.")
+
+    target.update({
+        "name": call.data["name"].strip(),
+        "keywords": [kw.strip().lower() for kw in call.data["keywords"] if kw.strip()],
+        "service": call.data["service"],
+        "entity_id": call.data["entity_id"],
+        "service_data": call.data.get("service_data", {}),
+        "reply_ok": call.data.get("reply_ok", ""),
+        "reply_fail": call.data.get("reply_fail", ""),
+    })
+    hass.config_entries.async_update_entry(
+        sms_entry, options={**sms_entry.options, "commands": save_commands(commands)}
+    )
+    hass.bus.async_fire(EVENT_COMMAND_UPDATED, {"command_id": command_id, "name": target["name"]})
+    LOGGER.info("Updated command '%s' (%s)", target["name"], command_id)
+
+
+async def _service_remove_command(call: ServiceCall) -> None:
+    hass = call.hass
+    command_id: str = call.data["command_id"]
+    entries = hass.config_entries.async_entries(DOMAIN)
+    if not entries:
+        raise ServiceValidationError("Netgear LTE SMS Manager is not configured.")
+    sms_entry = entries[0]
+
+    commands = load_commands(sms_entry.options)
+    new_commands = [c for c in commands if c.get("uuid") != command_id]
+    if len(new_commands) == len(commands):
+        LOGGER.warning("remove_command: command_id %s not found", command_id)
+        return
+
+    hass.config_entries.async_update_entry(
+        sms_entry, options={**sms_entry.options, "commands": save_commands(new_commands)}
+    )
+    hass.bus.async_fire(EVENT_COMMAND_REMOVED, {"command_id": command_id})
+    LOGGER.info("Removed command %s", command_id)
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register all services for Netgear LTE SMS Manager."""
@@ -416,6 +528,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_UPDATE_CONTACT: (_service_update_contact, UPDATE_CONTACT_SCHEMA),
         SERVICE_REMOVE_CONTACT: (_service_remove_contact, REMOVE_CONTACT_SCHEMA),
         SERVICE_SEND_WELCOME: (_service_send_welcome, SEND_WELCOME_SCHEMA),
+        SERVICE_ADD_COMMAND: (_service_add_command, ADD_COMMAND_SCHEMA),
+        SERVICE_UPDATE_COMMAND: (_service_update_command, UPDATE_COMMAND_SCHEMA),
+        SERVICE_REMOVE_COMMAND: (_service_remove_command, REMOVE_COMMAND_SCHEMA),
     }
 
     for service_name, (handler, schema) in service_handlers.items():

@@ -128,6 +128,40 @@
         "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
       },
       "name": "Send Welcome Message"
+    },
+    "add_command": {
+      "name": "Add Command",
+      "description": "Add an SMS command that triggers a Home Assistant service call.",
+      "fields": {
+        "name": { "name": "Name", "description": "Friendly name for this command." },
+        "keywords": { "name": "Keywords", "description": "List of words/phrases that trigger this command." },
+        "service": { "name": "Service", "description": "HA service to call (e.g. lock.lock)." },
+        "entity_id": { "name": "Entity ID", "description": "Entity to act on." },
+        "service_data": { "name": "Service data", "description": "Extra data to pass to the service call (optional)." },
+        "reply_ok": { "name": "Success reply", "description": "SMS sent back on success." },
+        "reply_fail": { "name": "Failure reply", "description": "SMS sent back on failure." }
+      }
+    },
+    "update_command": {
+      "name": "Update Command",
+      "description": "Update an existing SMS command.",
+      "fields": {
+        "command_id": { "name": "Command ID", "description": "UUID of the command to update." },
+        "name": { "name": "Name", "description": "New friendly name." },
+        "keywords": { "name": "Keywords", "description": "New keyword list." },
+        "service": { "name": "Service", "description": "HA service to call." },
+        "entity_id": { "name": "Entity ID", "description": "Entity to act on." },
+        "service_data": { "name": "Service data", "description": "Extra service data." },
+        "reply_ok": { "name": "Success reply", "description": "SMS sent back on success." },
+        "reply_fail": { "name": "Failure reply", "description": "SMS sent back on failure." }
+      }
+    },
+    "remove_command": {
+      "name": "Remove Command",
+      "description": "Remove an SMS command by UUID.",
+      "fields": {
+        "command_id": { "name": "Command ID", "description": "UUID of the command to remove." }
+      }
     }
   }
 }

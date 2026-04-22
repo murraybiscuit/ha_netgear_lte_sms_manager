@@ -101,6 +101,40 @@
         "number": { "name": "Phone number", "description": "Phone number to send the welcome message to." },
         "host": { "name": "Modem Host", "description": "IP address of the modem (auto-detected if only one configured)." }
       }
+    },
+    "add_command": {
+      "name": "Add Command",
+      "description": "Add an SMS command that triggers a Home Assistant service call.",
+      "fields": {
+        "name": { "name": "Name", "description": "Friendly name for this command (e.g. 'lock front door')." },
+        "keywords": { "name": "Keywords", "description": "Words or phrases that trigger this command (e.g. 'lock', 'lock door')." },
+        "service": { "name": "Service", "description": "HA service to call, e.g. lock.lock or cover.open_cover." },
+        "entity_id": { "name": "Entity ID", "description": "Entity to act on, e.g. lock.front_door_lock." },
+        "service_data": { "name": "Service data", "description": "Optional extra data passed to the service call as a dict." },
+        "reply_ok": { "name": "Success reply", "description": "SMS confirmation sent back to the sender on success." },
+        "reply_fail": { "name": "Failure reply", "description": "SMS sent back to the sender if the command fails." }
+      }
+    },
+    "update_command": {
+      "name": "Update Command",
+      "description": "Update an existing SMS command definition.",
+      "fields": {
+        "command_id": { "name": "Command ID", "description": "UUID of the command to update." },
+        "name": { "name": "Name", "description": "New friendly name." },
+        "keywords": { "name": "Keywords", "description": "New keyword list." },
+        "service": { "name": "Service", "description": "HA service to call." },
+        "entity_id": { "name": "Entity ID", "description": "Entity to act on." },
+        "service_data": { "name": "Service data", "description": "Optional extra service data dict." },
+        "reply_ok": { "name": "Success reply", "description": "SMS sent on success." },
+        "reply_fail": { "name": "Failure reply", "description": "SMS sent on failure." }
+      }
+    },
+    "remove_command": {
+      "name": "Remove Command",
+      "description": "Remove an SMS command by its UUID.",
+      "fields": {
+        "command_id": { "name": "Command ID", "description": "UUID of the command to remove." }
+      }
     }
   }
 }
