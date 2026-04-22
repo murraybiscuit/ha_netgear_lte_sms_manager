@@ -125,6 +125,12 @@ class SMSCoordinator(DataUpdateCoordinator[list[SMSMessage]]):
 
             command = keyword_match(msg.message, commands)
             if command is None:
+                disabled = keyword_match(msg.message, commands, include_disabled=True)
+                if disabled:
+                    try:
+                        await modem.send_sms(sender_digits, f"Command '{disabled['name']}' is currently disabled. Reply HELP for available commands.")
+                    except Exception as ex:
+                        LOGGER.warning("Disabled-command reply to %s failed: %s", sender_digits, ex)
                 continue
 
             domain, service = command["service"].split(".", 1)

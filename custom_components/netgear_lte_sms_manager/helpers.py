@@ -120,10 +120,9 @@ def build_help_reply(commands: list[dict]) -> str:
     enabled = [c for c in commands if c.get("enabled", True) is not False]
     if not enabled:
         return "No commands configured."
-    return "\n".join(
-        f"{c['name']}: {', '.join(c.get('keywords', []))}"
-        for c in enabled
-    )
+    lines = ["Available commands:"]
+    lines += [f"{c['name']}: {', '.join(c.get('keywords', []))}" for c in enabled]
+    return "\n".join(lines)
 
 
 def normalize_number(number: str) -> str:
@@ -171,11 +170,14 @@ def save_commands(commands: list[dict]) -> str:
     return json.dumps(commands)
 
 
-def keyword_match(text: str, commands: list[dict]) -> dict | None:
-    """Return the first enabled command whose keyword appears in text as whole words (case-insensitive)."""
+def keyword_match(text: str, commands: list[dict], include_disabled: bool = False) -> dict | None:
+    """Return the first matching command whose keyword appears in text as whole words (case-insensitive).
+
+    Skips disabled commands unless include_disabled is True.
+    """
     normalized = re.sub(r"[^\w\s]", "", text.lower()).strip()
     for command in commands:
-        if command.get("enabled", True) is False:
+        if not include_disabled and command.get("enabled", True) is False:
             continue
         for kw in command.get("keywords", []):
             pattern = r"\b" + re.escape(kw.lower().strip()) + r"\b"
