@@ -155,6 +155,12 @@ if (!customElements.get("netgear-sms-panel")) {
         }
         .panel-header ha-menu-button {
           color: var(--app-header-text-color, white);
+          display: none;
+        }
+        @media (max-width: 870px) {
+          .panel-header ha-menu-button {
+            display: block;
+          }
         }
         .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .panel-content {
@@ -162,6 +168,9 @@ if (!customElements.get("netgear-sms-panel")) {
           margin: 0 auto;
           padding: 24px 20px;
           box-sizing: border-box;
+        }
+        @media (max-width: 899px) {
+          .section { margin-bottom: 16px; }
         }
         @media (min-width: 900px) {
           .panel-content { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
