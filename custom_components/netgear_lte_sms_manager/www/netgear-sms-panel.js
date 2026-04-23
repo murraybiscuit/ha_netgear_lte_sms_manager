@@ -156,6 +156,7 @@ if (!customElements.get("netgear-sms-panel")) {
         .panel-header ha-menu-button {
           color: var(--app-header-text-color, white);
         }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .panel-content {
           max-width: 1100px;
           margin: 0 auto;
@@ -385,7 +386,10 @@ if (!customElements.get("netgear-sms-panel")) {
         e.textContent = "Inbox is empty";
         section.appendChild(e);
       } else {
-        section.appendChild(this._makeInboxTable());
+        const inboxWrap = document.createElement("div");
+        inboxWrap.className = "table-wrap";
+        inboxWrap.appendChild(this._makeInboxTable());
+        section.appendChild(inboxWrap);
       }
 
       return section;
@@ -442,7 +446,10 @@ if (!customElements.get("netgear-sms-panel")) {
         empty.textContent = "No trusted senders configured";
         section.appendChild(empty);
       } else if (this._contacts.length > 0) {
-        section.appendChild(this._makeTrustedTable());
+        const trustedWrap = document.createElement("div");
+        trustedWrap.className = "table-wrap";
+        trustedWrap.appendChild(this._makeTrustedTable());
+        section.appendChild(trustedWrap);
       }
 
       return section;
@@ -916,7 +923,10 @@ if (!customElements.get("netgear-sms-panel")) {
         empty.textContent = "No commands configured";
         section.appendChild(empty);
       } else if (this._commands.length > 0) {
-        section.appendChild(this._makeCommandsTable());
+        const cmdWrap = document.createElement("div");
+        cmdWrap.className = "table-wrap";
+        cmdWrap.appendChild(this._makeCommandsTable());
+        section.appendChild(cmdWrap);
       }
 
       return section;
