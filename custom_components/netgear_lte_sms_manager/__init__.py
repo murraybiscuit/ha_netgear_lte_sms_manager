@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
 import shutil
 from pathlib import Path
 
 from homeassistant import config_entries
+from homeassistant.components import panel_custom
+from homeassistant.components.frontend import async_remove_panel
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-
-from homeassistant.components import panel_custom
 
 from .const import CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL, DOMAIN, LOGGER
 from .coordinator import SMSCoordinator
@@ -20,43 +21,31 @@ PLATFORMS = [Platform.SENSOR]
 
 _PANEL_JS = "netgear-sms-panel.js"
 _PANEL_WWW_DIR = "netgear-sms-manager"
+_PANEL_URL_PATH = "netgear-sms-manager"
 _PANEL_ENTITY = "sensor.netgear_lte_sms_manager_inbox"
 
 
-def _deploy_panel_js(hass: HomeAssistant) -> None:
-    """Copy panel JS from custom_components/www to /config/www on install/update."""
+def _deploy_panel_js(hass: HomeAssistant) -> str:
+    """Copy panel JS to /config/www and return a content hash for cache-busting."""
     src = Path(__file__).parent / "www" / _PANEL_JS
     if not src.exists():
         LOGGER.warning("Panel JS not found at %s — skipping deploy", src)
-        return
+        return "0"
 
     dst_dir = Path(hass.config.path("www", _PANEL_WWW_DIR))
     dst_dir.mkdir(parents=True, exist_ok=True)
     dst = dst_dir / _PANEL_JS
 
-    if not dst.exists() or src.read_bytes() != dst.read_bytes():
+    content = src.read_bytes()
+    if not dst.exists() or content != dst.read_bytes():
         shutil.copy2(src, dst)
         LOGGER.info("Deployed %s to %s", _PANEL_JS, dst)
-    else:
-        LOGGER.debug("Panel JS already up to date at %s", dst)
+
+    return hashlib.md5(content).hexdigest()[:8]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     LOGGER.info("Setting up Netgear LTE SMS Manager")
-
-    await hass.async_add_executor_job(_deploy_panel_js, hass)
-
-    await panel_custom.async_register_panel(
-        hass,
-        webcomponent_name="netgear-sms-panel",
-        sidebar_title="Netgear SMS Manager",
-        sidebar_icon="mdi:message-text-outline",
-        frontend_url_path="netgear-sms-manager",
-        config={"entity": _PANEL_ENTITY},
-        require_admin=False,
-        js_url=f"/local/{_PANEL_WWW_DIR}/{_PANEL_JS}",
-    )
-
     async_setup_services(hass)
     return True
 
@@ -64,6 +53,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(
     hass: HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
+    js_hash = await hass.async_add_executor_job(_deploy_panel_js, hass)
+
+    await panel_custom.async_register_panel(
+        hass,
+        webcomponent_name="netgear-sms-panel",
+        sidebar_title="Netgear SMS Manager",
+        sidebar_icon="mdi:message-text-outline",
+        frontend_url_path=_PANEL_URL_PATH,
+        config={"entity": _PANEL_ENTITY},
+        require_admin=False,
+        js_url=f"/local/{_PANEL_WWW_DIR}/{_PANEL_JS}?v={js_hash}",
+    )
+
     poll_interval = entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)
     coordinator = SMSCoordinator(hass, entry, poll_interval)
     await coordinator.async_config_entry_first_refresh()
@@ -77,6 +79,7 @@ async def async_setup_entry(
 async def async_unload_entry(
     hass: HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
+    async_remove_panel(hass, _PANEL_URL_PATH)
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id, None)
