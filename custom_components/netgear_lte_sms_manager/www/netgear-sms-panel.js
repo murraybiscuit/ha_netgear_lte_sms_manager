@@ -137,21 +137,6 @@ if (!customElements.get("netgear-sms-panel")) {
           background: var(--primary-background-color);
           min-height: 100%;
         }
-        .panel-header {
-          background: var(--app-header-background-color, var(--primary-color));
-          color: var(--app-header-text-color, white);
-          padding: 0 16px;
-          height: 56px;
-          display: flex;
-          align-items: center;
-          font-size: 20px;
-          font-weight: 400;
-          letter-spacing: 0.01em;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
         .panel-content {
           max-width: 1100px;
           margin: 0 auto;
@@ -281,11 +266,6 @@ if (!customElements.get("netgear-sms-panel")) {
       `;
 
       const wrapper = document.createElement("div");
-
-      const header = document.createElement("div");
-      header.className = "panel-header";
-      header.textContent = "Netgear LTE SMS Manager";
-      wrapper.appendChild(header);
 
       const content = document.createElement("div");
       content.className = "panel-content";
