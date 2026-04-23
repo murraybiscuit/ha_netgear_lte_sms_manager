@@ -88,6 +88,12 @@ When keyword matching finds no match, LLM matching (if enabled) sends the messag
 
 Requires Ollama configured as a Home Assistant conversation agent. Auto-detects the Ollama URL and model from the HA config entry.
 
+#### Why Ollama directly, not the HA voice assistant?
+
+HA's `conversation.async_converse` API routes all text through the home control pipeline, which wraps the LLM in a system prompt about device control and enables tool calls for executing HA services. Sending a classification prompt like *"which command matches this message?"* through that pipeline causes the LLM to interpret it as a home control request and attempt to execute intents — not classify text.
+
+This component calls the Ollama `/api/generate` endpoint directly, bypassing the home control context entirely. The LLM receives only the classification prompt and returns a plain text response. This is intentional and necessary for correct behaviour.
+
 ### HELP autoresponder
 
 Any trusted contact can SMS **help** to get a list of enabled commands and their keywords.
