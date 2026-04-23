@@ -53,13 +53,17 @@ CONF_POLL_INTERVAL: Final = "poll_interval"
 CONF_AUTO_OPT_OUT: Final = "auto_opt_out"
 CONF_WELCOME_MESSAGE: Final = "welcome_message"
 CONF_LLM_MATCHING: Final = "llm_matching"
+CONF_AUTO_CLEANUP: Final = "auto_cleanup"
 
 # Defaults
 DEFAULT_RETAIN_COUNT: Final = 24
 DEFAULT_RETAIN_DAYS: Final = 0
 DEFAULT_DRY_RUN: Final = True
-DEFAULT_POLL_INTERVAL: Final = 30
+DEFAULT_POLL_INTERVAL: Final = 15
 DEFAULT_LLM_MATCHING: Final = False
+DEFAULT_AUTO_CLEANUP: Final = True
+AUTO_CLEANUP_THRESHOLD: Final = 18  # trigger when inbox reaches this count
+AUTO_CLEANUP_KEEP: Final = 10       # trim down to this many messages
 DEFAULT_WELCOME_MESSAGE: Final = (
     "Welcome to Home Assistant! Reply to this number to issue a simple command "
     "e.g. 'Lock front door'. Reply 'help' for available commands."

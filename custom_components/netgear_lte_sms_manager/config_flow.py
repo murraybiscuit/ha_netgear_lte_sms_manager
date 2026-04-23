@@ -9,10 +9,12 @@ from homeassistant import config_entries
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_AUTO_CLEANUP,
     CONF_AUTO_OPT_OUT,
     CONF_LLM_MATCHING,
     CONF_POLL_INTERVAL,
     CONF_WELCOME_MESSAGE,
+    DEFAULT_AUTO_CLEANUP,
     DEFAULT_LLM_MATCHING,
     DEFAULT_POLL_INTERVAL,
     DEFAULT_WELCOME_MESSAGE,
@@ -74,6 +76,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_WELCOME_MESSAGE, DEFAULT_WELCOME_MESSAGE
                         ),
                     ): selector.selector({"text": {"multiline": True}}),
+                    vol.Required(
+                        CONF_AUTO_CLEANUP,
+                        default=self.config_entry.options.get(CONF_AUTO_CLEANUP, DEFAULT_AUTO_CLEANUP),
+                    ): selector.selector({"boolean": {}}),
                     vol.Required(
                         CONF_LLM_MATCHING,
                         default=self.config_entry.options.get(

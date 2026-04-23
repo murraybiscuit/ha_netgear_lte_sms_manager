@@ -25,12 +25,14 @@
           "poll_interval": "Poll interval",
           "auto_opt_out": "Auto opt-out",
           "welcome_message": "Welcome message",
+          "auto_cleanup": "Auto cleanup",
           "llm_matching": "LLM matching"
         },
         "data_description": {
           "poll_interval": "How often to check the modem inbox for new messages (seconds).",
           "auto_opt_out": "Look for unsubscribe keywords to opt out and auto delete spam messages.",
           "welcome_message": "Message sent to new trusted senders when they are added.",
+          "auto_cleanup": "Automatically delete oldest messages when the inbox approaches the modem limit (keeps newest 10, triggers at 18 messages).",
           "llm_matching": "When enabled, uses your configured HA assistant to interpret SMS messages and match them to predefined commands. Only runs when keyword matching finds no match. Falls back silently if no assistant is configured or unavailable."
         }
       }
