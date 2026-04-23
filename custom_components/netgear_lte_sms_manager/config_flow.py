@@ -56,9 +56,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): selector.selector(
                         {
                             "number": {
-                                "min": 60,
+                                "min": 15,
                                 "max": 3600,
-                                "step": 60,
+                                "step": 15,
                                 "unit_of_measurement": "s",
                                 "mode": "slider",
                             }
