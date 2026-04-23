@@ -108,9 +108,9 @@ This component calls the Ollama `/api/generate` endpoint directly, bypassing the
 
 Any trusted contact can SMS **help** to get a list of enabled commands and their keywords.
 
-![SMS commands](screenshots/panel-sms-commands.png)
-
 ### Managing commands
+
+![SMS commands](screenshots/panel-sms-commands.png)
 
 Commands are managed through the sidebar panel UI or via HA services (`add_command`, `update_command`, `remove_command`). Each command requires:
 
