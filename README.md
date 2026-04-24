@@ -7,7 +7,7 @@ A Home Assistant custom component that extends the core `netgear_lte` integratio
 
 ## Screenshots
 
-![Panel inbox](screenshots/panel-inbox.png)
+![Panel inbox](https://raw.githubusercontent.com/murraybiscuit/hacs_netgear_lte_sms_manager/main/screenshots/panel-inbox.png)
 
 *Main panel — inbox, trusted senders, and SMS commands at a glance*
 
@@ -50,7 +50,7 @@ This integration is not in the HACS default store. Add it as a custom repository
 Copy `custom_components/netgear_lte_sms_manager/` into your `config/custom_components/` directory and restart Home Assistant.
 
 ## Configuration
-<img src="screenshots/panel-options.png" alt="Options screen" width="500"/>
+<img src="https://raw.githubusercontent.com/murraybiscuit/hacs_netgear_lte_sms_manager/main/screenshots/panel-options.png" alt="Options screen" width="500"/>
 
 After adding the integration, open the sidebar panel **Netgear SMS Manager** or go to **Settings → Integrations → Netgear LTE SMS Manager → Configure** to adjust:
 
@@ -95,7 +95,7 @@ When keyword matching finds no match, LLM matching (if enabled) sends the messag
 
 Requires Ollama configured as a Home Assistant conversation agent. Auto-detects the Ollama URL and model from the HA config entry.
 
-<img src="screenshots/mobile-llm-confirmation.png" alt="LLM confirmation round-trip" width="250"/>
+<img src="https://raw.githubusercontent.com/murraybiscuit/hacs_netgear_lte_sms_manager/main/screenshots/mobile-llm-confirmation.png" alt="LLM confirmation round-trip" width="250"/>
 
 #### Why Ollama directly, not the HA voice assistant?
 
@@ -109,7 +109,7 @@ Any trusted contact can SMS **help** to get a list of enabled commands and their
 
 ### Managing commands
 
-![SMS commands](screenshots/panel-sms-commands.png)
+![SMS commands](https://raw.githubusercontent.com/murraybiscuit/hacs_netgear_lte_sms_manager/main/screenshots/panel-sms-commands.png)
 
 Commands are managed through the sidebar panel UI or via HA services (`add_command`, `update_command`, `remove_command`). Each command requires:
 
@@ -121,7 +121,7 @@ Commands are managed through the sidebar panel UI or via HA services (`add_comma
 
 ## Trusted Contacts
 
-<img src="screenshots/panel-trusted-senders.png" alt="Trusted senders" width="500"/>
+<img src="https://raw.githubusercontent.com/murraybiscuit/hacs_netgear_lte_sms_manager/main/screenshots/panel-trusted-senders.png" alt="Trusted senders" width="500"/>
 
 Only contacts in the trusted list can trigger commands. Manage them via the panel or services.
 
