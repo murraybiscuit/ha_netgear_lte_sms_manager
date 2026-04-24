@@ -1,74 +1,298 @@
-{
-  "services": {
-    "list_inbox": {
-      "description": "List all SMS messages in the modem inbox.",
-      "fields": {
-        "host": {
-          "description": "IP address of the Netgear LTE modem (auto-detected if only one configured).",
-          "example": "192.168.5.1",
-          "name": "Modem Host"
-        }
-      },
-      "name": "List SMS Inbox"
-    },
-    "delete_sms": {
-      "description": "Delete one or more SMS messages by ID.",
-      "fields": {
-        "host": {
-          "description": "IP address of the Netgear LTE modem (auto-detected if only one configured).",
-          "example": "192.168.5.1",
-          "name": "Modem Host"
-        },
-        "sms_id": {
-          "description": "Message ID or list of message IDs to delete.",
-          "example": [1, 2, 3],
-          "name": "SMS ID(s)"
-        }
-      },
-      "name": "Delete SMS",
-      "required": ["sms_id"]
-    },
-    "cleanup_inbox": {
-      "description": "Clean up the SMS inbox using policy options.",
-      "fields": {
-        "host": {
-          "description": "IP address of the Netgear LTE modem (auto-detected if only one configured).",
-          "example": "192.168.5.1",
-          "name": "Modem Host"
-        },
-        "retain_count": {
-          "description": "Number of newest messages to keep (default 24).",
-          "example": 24,
-          "name": "Retain count"
-        },
-        "retain_days": {
-          "description": "Keep messages newer than this many days (0 = ignore).",
-          "example": 7,
-          "name": "Retain days"
-        },
-        "whitelist": {
-          "description": "List of senders (numbers or names) that should never be deleted.",
-          "example": ["+123456789", "Mom"],
-          "name": "Whitelist"
-        },
-        "dry_run": {
-          "description": "If true, only report what would be deleted without deleting.",
-          "example": true,
-          "name": "Dry run"
-        }
-      },
-      "name": "Cleanup Inbox"
-    },
-    "get_inbox_json": {
-      "description": "Get inbox as JSON data (for template sensors and integrations).",
-      "fields": {
-        "host": {
-          "description": "IP address of the Netgear LTE modem (auto-detected if only one configured).",
-          "example": "192.168.5.1",
-          "name": "Modem Host"
-        }
-      },
-      "name": "Get Inbox JSON"
-    }
-  }
-}
+list_inbox:
+  name: List SMS Inbox
+  description: List all SMS messages in the modem inbox.
+  fields:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      example: "192.168.5.1"
+      selector:
+        text:
+
+delete_sms:
+  name: Delete SMS
+  description: Delete one or more SMS messages by ID.
+  fields:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      example: "192.168.5.1"
+      selector:
+        text:
+    sms_id:
+      name: SMS ID(s)
+      description: Message ID or list of message IDs to delete.
+      required: true
+      example: "[1, 2, 3]"
+      selector:
+        object:
+
+cleanup_inbox:
+  name: Cleanup Inbox
+  description: Clean up the SMS inbox using policy-based retention rules.
+  fields:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      example: "192.168.5.1"
+      selector:
+        text:
+    retain_count:
+      name: Retain count
+      description: Number of newest messages to keep.
+      example: 10
+      selector:
+        number:
+          min: 0
+          mode: box
+    retain_days:
+      name: Retain days
+      description: Keep messages newer than this many days (0 = ignore).
+      example: 7
+      selector:
+        number:
+          min: 0
+          mode: box
+    whitelist:
+      name: Whitelist
+      description: Sender numbers that should never be deleted.
+      example: '["14255550123"]'
+      selector:
+        object:
+    dry_run:
+      name: Dry run
+      description: Report what would be deleted without actually deleting.
+      selector:
+        boolean:
+
+get_inbox_json:
+  name: Get Inbox JSON
+  description: Return inbox as a JSON-serialisable response (for template sensors).
+  fields:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      example: "192.168.5.1"
+      selector:
+        text:
+
+add_contact:
+  name: Add Trusted Contact
+  description: Add a phone number to the trusted contacts list.
+  fields:
+    name:
+      name: Name
+      description: Display name for the contact.
+      required: true
+      example: "Alice"
+      selector:
+        text:
+    number:
+      name: Phone number
+      description: Phone number (digits only, e.g. 14255550123).
+      required: true
+      example: "14255550123"
+      selector:
+        text:
+    send_welcome:
+      name: Send welcome message
+      description: Send the configured welcome SMS to the contact after adding.
+      selector:
+        boolean:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      selector:
+        text:
+
+update_contact:
+  name: Update Trusted Contact
+  description: Update the name or number for an existing trusted contact.
+  fields:
+    contact_id:
+      name: Contact ID
+      description: UUID of the contact to update.
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      description: New display name.
+      required: true
+      selector:
+        text:
+    number:
+      name: Phone number
+      description: New phone number (digits only).
+      required: true
+      selector:
+        text:
+
+remove_contact:
+  name: Remove Trusted Contact
+  description: Remove a trusted contact by UUID.
+  fields:
+    contact_id:
+      name: Contact ID
+      description: UUID of the contact to remove.
+      required: true
+      selector:
+        text:
+
+send_welcome:
+  name: Send Welcome Message
+  description: Send the configured welcome SMS to a phone number.
+  fields:
+    number:
+      name: Phone number
+      description: Destination number (digits only).
+      required: true
+      example: "14255550123"
+      selector:
+        text:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      selector:
+        text:
+
+add_command:
+  name: Add SMS Command
+  description: Add a new SMS command that trusted contacts can trigger.
+  fields:
+    name:
+      name: Name
+      description: Human-readable intent label (used in HELP replies and LLM prompts).
+      required: true
+      example: "lock front door"
+      selector:
+        text:
+    keywords:
+      name: Keywords
+      description: Trigger phrases (word-boundary matched, case-insensitive).
+      required: true
+      example: '["lock", "lock up"]'
+      selector:
+        object:
+    service:
+      name: Service
+      description: Home Assistant service to call (e.g. lock.lock).
+      required: true
+      example: "lock.lock"
+      selector:
+        text:
+    entity_id:
+      name: Entity ID
+      description: Entity to act on.
+      required: true
+      example: "lock.front_door"
+      selector:
+        entity:
+    service_data:
+      name: Service data
+      description: Additional service call data (optional).
+      selector:
+        object:
+    reply_ok:
+      name: Success reply
+      description: SMS sent back to the sender on success.
+      example: "Front door locked."
+      selector:
+        text:
+    reply_fail:
+      name: Failure reply
+      description: SMS sent back to the sender on failure.
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Whether the command is active.
+      selector:
+        boolean:
+
+update_command:
+  name: Update SMS Command
+  description: Update an existing SMS command by UUID.
+  fields:
+    command_id:
+      name: Command ID
+      description: UUID of the command to update.
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      required: true
+      selector:
+        text:
+    keywords:
+      name: Keywords
+      required: true
+      selector:
+        object:
+    service:
+      name: Service
+      required: true
+      selector:
+        text:
+    entity_id:
+      name: Entity ID
+      required: true
+      selector:
+        entity:
+    service_data:
+      name: Service data
+      selector:
+        object:
+    reply_ok:
+      name: Success reply
+      selector:
+        text:
+    reply_fail:
+      name: Failure reply
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      selector:
+        boolean:
+
+remove_command:
+  name: Remove SMS Command
+  description: Remove an SMS command by UUID.
+  fields:
+    command_id:
+      name: Command ID
+      description: UUID of the command to remove.
+      required: true
+      selector:
+        text:
+
+test_command:
+  name: Test SMS Command
+  description: Simulate an incoming SMS to test command dispatch without a real message.
+  fields:
+    message:
+      name: Message
+      description: Simulated SMS message text.
+      required: true
+      example: "lock up"
+      selector:
+        text:
+    sender:
+      name: Sender
+      description: Simulated sender number (must be a trusted contact).
+      required: true
+      example: "14255550123"
+      selector:
+        text:
+    send_reply:
+      name: Send reply SMS
+      description: Also send the command reply SMS via the modem.
+      selector:
+        boolean:
+    host:
+      name: Modem Host
+      description: IP address of the Netgear LTE modem (auto-detected if only one configured).
+      selector:
+        text:

@@ -10,7 +10,6 @@
   "iot_class": "local_polling",
   "requirements": [],
   "version": "0.5.1",
-  "homeassistant": "2025.1",
   "issue_tracker": "https://github.com/murraybiscuit/hacs_netgear_lte_sms_manager/issues",
   "dependencies": [
     "netgear_lte",
