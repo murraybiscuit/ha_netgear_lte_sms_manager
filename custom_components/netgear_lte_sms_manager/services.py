@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import voluptuous as vol
@@ -223,7 +223,7 @@ async def _service_cleanup_inbox(call: ServiceCall) -> None:
 
         delete_candidates: list[int] = []
         if retain_days and retain_days > 0:
-            cutoff = datetime.utcnow() - timedelta(days=retain_days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=retain_days)
             for sms, ts in annotated:
                 if ts is None:
                     continue
